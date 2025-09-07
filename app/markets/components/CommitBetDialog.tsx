@@ -70,37 +70,34 @@ export function CommitBetDialog({ m }: { m: UiMarket }) {
     const isCancelled = m.status === 2;
     const isWinner = committed && hasRevealed && typeof userBet?.direction === 'number' && typeof m.winningDirection === 'number' && userBet!.direction === m.winningDirection;
 
-    const { ctaLabel, ctaClasses } = useMemo(() => {
-        // defaults: commit state
+    const { ctaLabel, ctaClasses, ctaDisabled } = useMemo(() => {
+        // Defaults for new users before close
         let label = "Commit a bet";
         let classes = "mt-4 w-full bg-gradient-to-r from-cyan-500 to-fuchsia-500 text-white hover:opacity-90";
+        let disabled = false;
 
-        if (!committed) {
-            return { ctaLabel: label, ctaClasses: classes };
-        }
-
-        if (!revealOpen) {
-            label = "View your bet";
-            classes = "mt-4 w-full bg-white/10 text-white hover:bg-white/20";
-            return { ctaLabel: label, ctaClasses: classes };
-        }
-
-        if (revealOpen && !hasRevealed) {
-            label = "Reveal bet";
-            classes = "mt-4 w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90";
-            return { ctaLabel: label, ctaClasses: classes };
-        }
-
+        // Cancelled takes priority
         if (isCancelled) {
-            label = userBet?.claimed ? "Refund claimed" : "Claim refund";
-            classes = userBet?.claimed
-                ? "mt-4 w-full bg-white/10 text-white"
-                : "mt-4 w-full bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:opacity-90";
-            return { ctaLabel: label, ctaClasses: classes };
+            if (!committed) {
+                label = "Cancelled";
+                classes = "mt-4 w-full bg-white/10 text-white";
+                disabled = true;
+            } else {
+                label = userBet?.claimed ? "Refund claimed" : "Claim refund";
+                classes = userBet?.claimed
+                    ? "mt-4 w-full bg-white/10 text-white"
+                    : "mt-4 w-full bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:opacity-90";
+            }
+            return { ctaLabel: label, ctaClasses: classes, ctaDisabled: disabled };
         }
 
+        // Resolved state
         if (isResolved) {
-            if (isWinner) {
+            if (!committed) {
+                label = "Resolved";
+                classes = "mt-4 w-full bg-white/10 text-white";
+                disabled = true;
+            } else if (isWinner) {
                 label = userBet?.claimed ? "Reward claimed" : "Claim reward";
                 classes = userBet?.claimed
                     ? "mt-4 w-full bg-white/10 text-white"
@@ -109,19 +106,42 @@ export function CommitBetDialog({ m }: { m: UiMarket }) {
                 label = "Your bet was wrong";
                 classes = "mt-4 w-full bg-rose-500/20 text-rose-200 hover:bg-rose-500/30";
             }
-            return { ctaLabel: label, ctaClasses: classes };
+            return { ctaLabel: label, ctaClasses: classes, ctaDisabled: disabled };
         }
 
-        // Fallback while waiting for resolution
-        label = "View your bet";
-        classes = "mt-4 w-full bg-white/10 text-white hover:bg-white/20";
-        return { ctaLabel: label, ctaClasses: classes };
+        // During reveal period (closed for new commitments)
+        if (revealOpen) {
+            if (committed) {
+                if (!hasRevealed) {
+                    label = "Reveal bet";
+                    classes = "mt-4 w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:opacity-90";
+                } else {
+                    label = "View your bet";
+                    classes = "mt-4 w-full bg-white/10 text-white hover:bg-white/20";
+                }
+            } else {
+                label = "Closed";
+                classes = "mt-4 w-full bg-white/10 text-white";
+                disabled = true;
+            }
+            return { ctaLabel: label, ctaClasses: classes, ctaDisabled: disabled };
+        }
+
+        // Before reveal period
+        if (committed) {
+            label = "View your bet";
+            classes = "mt-4 w-full bg-white/10 text-white hover:bg-white/20";
+            return { ctaLabel: label, ctaClasses: classes, ctaDisabled: false };
+        }
+
+        // Default: allow committing
+        return { ctaLabel: label, ctaClasses: classes, ctaDisabled: false };
     }, [committed, revealOpen, hasRevealed, isResolved, isCancelled, isWinner, userBet?.claimed]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className={ctaClasses}>
+                <Button className={ctaClasses} disabled={ctaDisabled}>
                     {ctaLabel}
                 </Button>
             </DialogTrigger>
