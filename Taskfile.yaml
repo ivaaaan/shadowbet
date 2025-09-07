@@ -1,0 +1,68 @@
+version: 3
+
+dotenv:
+  - .env
+  - .env.local
+
+tasks:
+  forge:build:
+    desc: Build contracts with Foundry
+    dir: forge
+    cmds:
+      - forge build
+
+  forge:test:
+    desc: Run Foundry tests
+    dir: forge
+    cmds:
+      - forge test -vvv
+
+  anvil:
+    desc: Start local Anvil node
+    cmds:
+      - anvil
+
+  simulate:
+    desc: Simulate deploy without broadcasting (requires RPC_URL and USDC_ADDRESS)
+    dir: forge
+    env:
+      RPC_URL: "{{.RPC_URL}}"
+      USDC_ADDRESS: "{{.USDC_ADDRESS}}"
+    cmds:
+      - test -n "$RPC_URL"
+      - test -n "$USDC_ADDRESS"
+      - forge script script/Betting.s.sol --rpc-url $RPC_URL
+
+  deploy:
+    desc: Deploy Betting via Foundry (requires RPC_URL, PRIVATE_KEY, USDC_ADDRESS)
+    dir: forge
+    env:
+      RPC_URL: "{{.RPC_URL}}"
+      PRIVATE_KEY: "{{.PRIVATE_KEY}}"
+      USDC_ADDRESS: "{{.USDC_ADDRESS}}"
+      ETHERSCAN_API_KEY: "{{.ETHERSCAN_API_KEY}}"
+    cmds:
+      - test -n "$RPC_URL"
+      - test -n "$PRIVATE_KEY"
+      - test -n "$USDC_ADDRESS"
+      - forge script script/Betting.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast {{if .VERIFY}}--verify --etherscan-api-key $ETHERSCAN_API_KEY{{end}}
+
+  deploy:base-sepolia:
+    desc: Deploy to Base Sepolia (set PRIVATE_KEY, USDC_ADDRESS, ETHERSCAN_API_KEY for verify)
+    cmds:
+      - task: deploy
+        vars:
+          RPC_URL: "{{.RPC_URL | default \"https://sepolia.base.org\"}}"
+          PRIVATE_KEY: "{{.PRIVATE_KEY}}"
+          USDC_ADDRESS: "{{.USDC_ADDRESS}}"
+          ETHERSCAN_API_KEY: "{{.ETHERSCAN_API_KEY}}"
+          VERIFY: "{{.VERIFY}}"
+
+  deploy:local:
+    desc: Deploy to local Anvil at http://127.0.0.1:8545 (set PRIVATE_KEY and USDC_ADDRESS)
+    cmds:
+      - task: deploy
+        vars:
+          RPC_URL: "{{.RPC_URL | default \"http://127.0.0.1:8545\"}}"
+          PRIVATE_KEY: "{{.PRIVATE_KEY}}"
+          USDC_ADDRESS: "{{.USDC_ADDRESS}}"
