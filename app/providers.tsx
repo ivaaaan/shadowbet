@@ -26,7 +26,7 @@ const connectors = connectorsForWallets(
     ],
     {
         appName: 'ShadowBet',
-        projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID || '',
+        projectId: projectId || '',
     }
 );
 
