@@ -3,6 +3,7 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import { Badge } from "./ui/badge";
+import Providers from "@/app/providers";
 
 
 
