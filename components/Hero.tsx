@@ -1,6 +1,5 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { Github, Shield, EyeOff, Lock, Zap, Coins, Network, Hash, Clock, CheckCircle2, ChevronRight, Wallet2 } from "lucide-react";
+import { EyeOff, Lock } from "lucide-react";
 
 export function Hero() {
     return (

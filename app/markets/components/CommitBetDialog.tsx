@@ -19,14 +19,14 @@ function cryptoRandomSalt(bytes = 16) {
 
 export function CommitBetDialog({ m }: { m: UiMarket }) {
     const [open, setOpen] = useState(false);
-    const [tick, setTick] = useState(0);
+    const [_, setTick] = useState(0);
     const { address } = useAccount();
     const [userBet, setUserBet] = useState<{ amount: bigint; commit: `0x${string}`; direction?: number; revealed?: boolean; claimed?: boolean } | null>(null);
     useEffect(() => {
         const id = setInterval(() => setTick((t) => t + 1), 1000);
         return () => clearInterval(id);
     }, []);
-    const revealOpen = useMemo(() => Date.now() >= new Date(m.closesAt).getTime(), [m.closesAt, tick]);
+    const revealOpen = useMemo(() => Date.now() >= new Date(m.closesAt).getTime(), [m.closesAt]);
 
     useEffect(() => {
         let cancelled = false;
@@ -40,14 +40,15 @@ export function CommitBetDialog({ m }: { m: UiMarket }) {
                 if (!cancelled) setUserBet(null);
             }
         })();
-        const unsubscribe = subscribeToBettingEvents(async ({ name, logs }) => {
+        const unsubscribe = subscribeToBettingEvents(async ({ logs }) => {
             if (!address) return;
             // Filter by this market or by this user to reduce noise
             const marketIndex = Number((m.id || "").split("-")[1] || 0);
-            const relevant = logs.some((log: any) => {
+            const relevant = logs.some((log) => {
                 try {
-                    const args = (log as any).args || {};
-                    const mid = Number(args?.marketId ?? args?.marketId?.toString?.() ?? -1);
+                    const args = (log as { args?: { marketId?: bigint | number | string; user?: string } }).args || {};
+                    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const mid = Number(args?.marketId ?? (args as any)?.marketId?.toString?.() ?? -1);
                     const user = (args?.user || '').toLowerCase();
                     if (!Number.isFinite(mid)) return false;
                     // Update if this market or if user is involved
@@ -115,7 +116,6 @@ export function CommitBetDialog({ m }: { m: UiMarket }) {
         label = "View your bet";
         classes = "mt-4 w-full bg-white/10 text-white hover:bg-white/20";
         return { ctaLabel: label, ctaClasses: classes };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [committed, revealOpen, hasRevealed, isResolved, isCancelled, isWinner, userBet?.claimed]);
 
     return (

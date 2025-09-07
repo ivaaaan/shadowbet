@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EyeOff, Zap, Network, Shield, Coins, Lock } from "lucide-react";
+import { EyeOff, Network, Lock } from "lucide-react";
 
 export default function Benefits() {
     const items = [

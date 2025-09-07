@@ -14,9 +14,7 @@ import {
     Legend,
 } from "chart.js";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Clock } from "lucide-react";
 import CommitBetDialog from "./CommitBetDialog";
 import type { UiMarket } from "@/lib/marketsService";
@@ -68,7 +66,7 @@ export default function MarketCard({ m }: { m: UiMarket }) {
         const id = setInterval(() => setTick((t) => t + 1), 1000);
         return () => clearInterval(id);
     }, []);
-    const tl = useMemo(() => timeLeft(m.closesAt), [m.closesAt, tick]);
+    const tl = useMemo(() => timeLeft(m.closesAt), [m.closesAt]);
 
     useEffect(() => {
         let cancelled = false;
@@ -77,7 +75,7 @@ export default function MarketCard({ m }: { m: UiMarket }) {
                 const days = 30;
                 const endDate = new Date();
                 const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
-                const display = ((m as any).symbol || "ETH").toString().toUpperCase();
+                const display = (m.symbol || "ETH").toString().toUpperCase();
                 const [base, quote] = display.includes('/') ? display.split('/') : [display, 'USD'];
                 const baseSeries = await redstone.getHistoricalPrice(base, {
                     startDate,
@@ -86,7 +84,7 @@ export default function MarketCard({ m }: { m: UiMarket }) {
                     provider: "redstone",
                 });
                 const baseCloses: number[] = Array.isArray(baseSeries)
-                    ? baseSeries.map((p: any) => (typeof p?.value === 'number' ? p.value : Number(p?.value)))
+                    ? baseSeries.map((p: { value: number | string }) => (typeof p?.value === 'number' ? p.value : Number(p?.value)))
                         .filter((v: number) => Number.isFinite(v))
                     : [];
                 let closes: number[] = baseCloses;
@@ -98,7 +96,7 @@ export default function MarketCard({ m }: { m: UiMarket }) {
                         provider: "redstone",
                     });
                     const quoteCloses: number[] = Array.isArray(quoteSeries)
-                        ? quoteSeries.map((p: any) => (typeof p?.value === 'number' ? p.value : Number(p?.value)))
+                        ? quoteSeries.map((p: { value: number | string }) => (typeof p?.value === 'number' ? p.value : Number(p?.value)))
                             .filter((v: number) => Number.isFinite(v))
                         : [];
                     const len = Math.min(baseCloses.length, quoteCloses.length);
@@ -141,7 +139,7 @@ export default function MarketCard({ m }: { m: UiMarket }) {
                                     labels: prices.map((_, i) => `${i - prices.length + 1}d`),
                                     datasets: [
                                         {
-                                            label: (m as any).symbol || "Price",
+                                            label: m.symbol || "Price",
                                             data: prices,
                                             borderColor: "rgba(52, 211, 153, 1)",
                                             backgroundColor: "rgba(52, 211, 153, 0.15)",

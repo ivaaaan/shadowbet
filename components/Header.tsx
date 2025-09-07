@@ -2,10 +2,7 @@
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
-import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Github } from "lucide-react";
-import { Wallet2 } from "lucide-react";
 
 
 

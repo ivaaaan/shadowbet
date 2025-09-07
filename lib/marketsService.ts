@@ -380,14 +380,15 @@ export async function claim({ walletClient, account, marketId }: { walletClient:
 }
 
 export type BettingEventName = 'MarketCreated' | 'BetCommitted' | 'BetRevealed' | 'MarketResolved' | 'Claimed';
-export function subscribeToBettingEvents(onEvent: (params: { name: BettingEventName; logs: any[] }) => void) {
+export type BettingEventLog = { args?: { marketId?: bigint | number | string; user?: string } };
+export function subscribeToBettingEvents(onEvent: (params: { name: BettingEventName; logs: BettingEventLog[] }) => void) {
     const unsubscribes: Array<() => void> = [];
     const add = (name: BettingEventName) => {
         const unwatch = publicClient.watchContractEvent({
             address: BETTING_ADDRESS,
             abi: bettingAbi,
             eventName: name,
-            onLogs: (logs) => onEvent({ name, logs: logs as any[] }),
+            onLogs: (logs) => onEvent({ name, logs: logs as BettingEventLog[] }),
             pollingInterval: 4_000,
         });
         unsubscribes.push(unwatch);
